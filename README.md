@@ -6,10 +6,12 @@
 
 ## 功能
 
+- TUI 终端界面，交互方式与 BT-Spider 类似
 - 通过 zlib CLI 搜索电子书，每次返回最多 15 个结果
+- 固定列宽结果表格，适配中英文混排
 - 展示书名、作者、格式、大小、年份
-- 输入序号直接下载，自动保存到本地
-- 无额外依赖，纯 Go 标准库
+- 方向键选择结果，回车直接下载
+- 提供 `run.sh` 一键编译并启动
 
 ## 前置依赖
 
@@ -32,39 +34,43 @@ HTTPS_PROXY=http://127.0.0.1:7890 ~/bin/zlib login --email your@email.com --pass
 go build -o bt-books .
 ```
 
-### 运行
+### 一键运行
 
 ```bash
-# 需要代理（用于访问 Z-Library）
-HTTPS_PROXY=http://127.0.0.1:7890 timeout 60 ./bt-books
+./run.sh
 ```
 
-### 命令
+如需代理：
 
-| 命令 | 说明 |
+```bash
+HTTPS_PROXY=http://127.0.0.1:7890 ./run.sh
+```
+
+### 手动运行
+
+```bash
+HTTPS_PROXY=http://127.0.0.1:7890 ./bt-books
+```
+
+### TUI 操作
+
+| 操作 | 说明 |
 |------|------|
-| `search <关键词>` / `book <关键词>` | 搜索电子书 |
-| `<序号>` | 下载对应结果 |
-| `quit` / `q` | 退出 |
+| 输入关键词后回车 | 搜索电子书 |
+| `search <关键词>` / `book <关键词>` 后回车 | 兼容旧命令格式 |
+| `↑` / `↓` 或 `j` / `k` | 选择结果 |
+| 空输入时按 `Enter` | 下载当前选中项 |
+| `esc` | 清空结果 |
+| `q` | 退出 |
 
 ### 示例
 
-```
-book> search Feynman Lectures on Physics
-📚 搜索电子书: Feynman Lectures on Physics
+```text
+book> Feynman Lectures on Physics
 
-找到 15 个结果:
-
-  [1] The Feynman Lectures on Physics: Quantum
-      Richard P. Feynman | PDF | 8.27 MB | 2013
-  [2] The Feynman Lectures on Physics, Vol. II
-      Richard P. Feynman | EPUB | 28.40 MB | 2015
-  ...
-
-输入序号下载（回车跳过）:
-1
-⬇️  下载电子书: The Feynman Lectures on Physics: Quantum Mechanics
-✓ Saved to: ~/Documents/Books/...pdf
+[01] The Feynman Lectures on Physics: Quantum...  Richard P. Feynman  PDF   8.27 MB  2013
+[02] The Feynman Lectures on Physics, Vol. II...  Richard P. Feynman  EPUB  28.40 MB  2015
+...
 ```
 
 ## 下载目录
@@ -76,18 +82,22 @@ book> search Feynman Lectures on Physics
 Z-Library 在国内需要代理：
 
 ```bash
-HTTPS_PROXY=http://127.0.0.1:7890 ./bt-books
+HTTPS_PROXY=http://127.0.0.1:7890 ./run.sh
 ```
 
 ## 项目结构
 
-```
+```text
 .
-├── main.go          # CLI 入口，交互式 REPL
+├── main.go          # TUI 入口
 ├── book/
 │   ├── book.go      # BookResult 结构体、BookProvider 接口、SearchBooks 聚合
-│   └── zlib.go      # zlib CLI 搜索 / 下载封装，表格解析
+│   └── zlib.go      # zlib CLI 搜索 / 下载封装
+├── tui/
+│   └── tui.go       # Bubble Tea TUI、结果表格、键盘交互
+├── run.sh           # 一键编译并启动
 ├── go.mod
+├── go.sum
 └── README.md
 ```
 

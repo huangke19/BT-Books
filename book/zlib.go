@@ -114,17 +114,32 @@ func ParseZlibTable(output string) []BookResult {
 
 // ZlibDownload calls zlib download <id> via script to provide a pseudo TTY.
 func ZlibDownload(id, destDir string) error {
+	_, err := runZlibDownload(id, destDir, false)
+	return err
+}
+
+// ZlibDownloadQuiet downloads a book without streaming the subprocess output to the terminal.
+// It returns the captured output for UI status messages.
+func ZlibDownloadQuiet(id, destDir string) (string, error) {
+	return runZlibDownload(id, destDir, true)
+}
+
+func runZlibDownload(id, destDir string, quiet bool) (string, error) {
 	if destDir == "" {
 		home, _ := os.UserHomeDir()
 		destDir = filepath.Join(home, "Documents", "Books")
 	}
 	if err := os.MkdirAll(destDir, 0755); err != nil {
-		return err
+		return "", err
 	}
 	cmd := exec.Command("script", "-q", "/dev/null",
 		ZlibBin(), "download", id, "-d", destDir)
 	cmd.Env = os.Environ()
+	if quiet {
+		out, err := cmd.CombinedOutput()
+		return string(out), err
+	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	return cmd.Run()
+	return "", cmd.Run()
 }
